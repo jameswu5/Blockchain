@@ -4,7 +4,8 @@ import java.util.ArrayList;
 public class Main {
 
     public static void main(String[] args) {
-        System.out.println(Hash.convertToBinary("hello world"));
+        System.out.println(Hash.hash("hello world"));
+        
     }
     
     public static void tryBlockchain() {

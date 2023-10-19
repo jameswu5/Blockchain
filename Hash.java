@@ -2,15 +2,33 @@
 
 public class Hash {
 
-    public String hash(String text) {
-
-        // Convert the text to binary
-        String binaryString = convertToBinary(text);
-
-        return "";
+    public static String hash(String text) {
+        // Preprocess the string
+        String preprocessedString = preprocessString(text);
+        return preprocessedString;
     }
 
-    public static String convertToBinary(String text) {
+    public static String preprocessString(String text) {
+        // Convert the text to binary
+        StringBuilder sb = convertToBinary(text);
+        long binaryLength = sb.length();
+
+        // Append a single 1
+        sb.append(1);
+
+        // Pad with zeros until data length = 512k - 64 (for some integer k)
+        int padLength = 512 - (sb.length() + 64) & (0b111111111);
+        sb.append("0".repeat(padLength));
+        
+        // Pad with length of original string (64 bits)
+        String binaryRepresentation = Long.toBinaryString(binaryLength);
+        int leadingZeros = 64 - binaryRepresentation.length();
+        sb.append("0".repeat(leadingZeros));
+        sb.append(binaryRepresentation);
+        return sb.toString();
+    }
+
+    private static StringBuilder convertToBinary(String text) {
         byte[] bytes = text.getBytes();
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
@@ -21,7 +39,7 @@ public class Hash {
             }
         }
 
-        return sb.toString();
+        return sb;
     }
 
 
