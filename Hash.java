@@ -27,6 +27,7 @@ public class Hash {
     public static String hash(String text) {
         // Preprocess the string
         String preprocessedString = preprocessString(text);
+        createMessageSchedule(preprocessedString);
         return preprocessedString;
     }
 
@@ -64,24 +65,42 @@ public class Hash {
         return sb;
     }
 
+    public static int[] createMessageSchedule(String preprocessedString) {
+        if (preprocessedString.length() != 512) {
+            System.out.println("preprocessedString not length 512");
+            return new int[0];
+        }
 
-    
-    /*
-        public static String hash(String text) {
-
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(text.getBytes());
-            byte[] digest = md.digest();
-
-            StringBuilder hexString = new StringBuilder();
-            for (byte b : digest) {
-                String hex = String.format("$02x", b);
-                hexString.append(hex);
-            }
-
-            return hexString.toString();
+        // mS means messageSchedule
+        int[] ms = new int[64];
+        for (int i = 0; i < 16; i++) {
+            ms[i] = Integer.parseInt(preprocessedString.substring(i * 32, (i + 1) * 32), 2);
+        }
+        
+        // Modify the zeroes at the end of array
+        for (int i = 16; i < 64; i++) {
+            int s0 = rightRotate(ms[i - 15], 7)
+                   ^ rightRotate(ms[i - 15], 18)
+                   ^ (ms[i - 15] >>> 3);
+            
+            int s1 = rightRotate(ms[i - 2], 17)
+                   ^ rightRotate(ms[i - 2], 19)
+                   ^ (ms[i - 2] >>> 10);
+            
+            ms[i] = ms[i - 16] + s0 + ms[i - 7] + s1;
 
         }
-    
-     */
+
+        return ms;
+    }
+
+    public static int rightRotate(int value, int shift) {
+        return (value >>> shift) | (value << (32 - shift));
+    }
+
+    private static void print32BitIntegerAsBinary(int num) {
+        String binaryString = Integer.toBinaryString(num);
+        System.out.print("0".repeat(32 - binaryString.length()));
+        System.out.println(binaryString);
+    }
 }
