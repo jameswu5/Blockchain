@@ -1,4 +1,4 @@
-// import java.security.MessageDigest;
+import java.math.BigInteger;
 
 public class Hash {
 
@@ -71,10 +71,12 @@ public class Hash {
             return new int[0];
         }
 
-        // mS means messageSchedule
+        // ms means messageSchedule
         int[] ms = new int[64];
         for (int i = 0; i < 16; i++) {
-            ms[i] = Integer.parseInt(preprocessedString.substring(i * 32, (i + 1) * 32), 2);
+            String substring = preprocessedString.substring(i * 32, (i + 1) * 32);
+            BigInteger bi = new BigInteger(substring, 2);
+            ms[i] = bi.intValue();
         }
         
         // Modify the zeroes at the end of array
@@ -126,18 +128,12 @@ public class Hash {
             v[0] = temp1 + temp2;
         }
 
-        int[] fin = new int[8];
-        for (int i = 0; i < 8; i++) {
-            fin[i] = HashValues[i] + v[i];
-        }
-
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 8; i++) {
-            sb.append(Integer.toHexString(fin[i]));
+            sb.append(Integer.toHexString(HashValues[i] + v[i]));
         }
 
         return sb.toString();
-        
     }
 
     // For testing only
