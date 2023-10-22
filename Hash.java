@@ -2,7 +2,7 @@
 
 public class Hash {
 
-    private final int[] HashValues = {
+    private static final int[] HashValues = {
         0x6a09e667,
         0xbb67ae85,
         0x3c6ef372,
@@ -13,7 +13,7 @@ public class Hash {
         0x5be0cd19
     };
     
-    private final int[] RoundConstants = {
+    private static final int[] RoundConstants = {
         0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
         0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
         0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
@@ -27,11 +27,11 @@ public class Hash {
     public static String hash(String text) {
         // Preprocess the string
         String preprocessedString = preprocessString(text);
-        createMessageSchedule(preprocessedString);
-        return preprocessedString;
+        int[] schedule = createMessageSchedule(preprocessedString);
+        return compress(schedule);
     }
 
-    public static String preprocessString(String text) {
+    private static String preprocessString(String text) {
         // Convert the text to binary
         StringBuilder sb = convertToBinary(text);
         long binaryLength = sb.length();
@@ -65,7 +65,7 @@ public class Hash {
         return sb;
     }
 
-    public static int[] createMessageSchedule(String preprocessedString) {
+    private static int[] createMessageSchedule(String preprocessedString) {
         if (preprocessedString.length() != 512) {
             System.out.println("preprocessedString not length 512");
             return new int[0];
@@ -94,10 +94,53 @@ public class Hash {
         return ms;
     }
 
-    public static int rightRotate(int value, int shift) {
+    private static int rightRotate(int value, int shift) {
         return (value >>> shift) | (value << (32 - shift));
     }
 
+    private static String compress(int[] messageSchedule) {
+
+        int[] v = new int[8];
+        for (int i = 0; i < 8; i++) {
+            v[i] = HashValues[i];
+        }
+
+        for (int i = 0; i < 64; i++) {
+            int s1 = rightRotate(v[4], 6)
+                   ^ rightRotate(v[4], 11)
+                   ^ rightRotate(v[4], 25);
+            int ch = (v[4] & v[5]) ^ (~v[4] & v[6]);
+            int temp1 = v[7] + s1 + ch + RoundConstants[i] + messageSchedule[i];
+            int s0 = rightRotate(v[0], 2)
+                   ^ rightRotate(v[0], 13)
+                   ^ rightRotate(v[0], 22);
+            int maj = (v[0] & v[1]) ^ (v[0] & v[2]) ^ (v[1] & v[2]);
+            int temp2 = s0 + maj;
+            v[7] = v[6];
+            v[6] = v[5];
+            v[5] = v[4];
+            v[4] = v[3] + temp1;
+            v[3] = v[2];
+            v[2] = v[1];
+            v[1] = v[0];
+            v[0] = temp1 + temp2;
+        }
+
+        int[] fin = new int[8];
+        for (int i = 0; i < 8; i++) {
+            fin[i] = HashValues[i] + v[i];
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 8; i++) {
+            sb.append(Integer.toHexString(fin[i]));
+        }
+
+        return sb.toString();
+        
+    }
+
+    // For testing only
     private static void print32BitIntegerAsBinary(int num) {
         String binaryString = Integer.toBinaryString(num);
         System.out.print("0".repeat(32 - binaryString.length()));
